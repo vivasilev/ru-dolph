@@ -910,7 +910,7 @@ class ruDolphApiTrainable(ruDolphApi):
             chunk_encoded = torch.stack(chunk_encoded)
             attention_mask = self.get_attention_mask(chunk_bs)
 
-            images = img.repeat((chunk_bs, 1, 1, 1)).to(self.device)
+            images = img.repeat((bs, 1, 1, 1)).to(self.device)
             image_input_ids = self.vae.get_codebook_indices(images, disable_gumbel_softmax=True)
 
             input_ids = torch.cat((
