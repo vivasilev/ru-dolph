@@ -697,14 +697,13 @@ class ruDolphApiTrainable(ruDolphApi):
         result = []
         indexes = scores.argsort()[:images_num]
         images = self.vae.decode(codebooks[indexes])
-        pil_images = utils.torch_tensors_to_pil_list(images)
         for idx in indexes:
             result.append({
                 'ppl_txt': ppl_txt[idx],
                 'ppl_img': ppl_img[idx],
                 'score': scores[idx],
             })
-        return pil_images, result
+        return images, result
 
     def generate_codebooks(self, text, images_num, image_prompts=None, top_k=None, top_p=None,
                            temperature=None, bs=None, seed=None, use_cache=True, special_token='<LT_T2I>'):
@@ -808,7 +807,7 @@ class ruDolphApiTrainable(ruDolphApi):
         
         
     def generate_captions(
-        self, pil_img, early_stop=None, top_k=None, top_p=None, captions_num=48,
+        self, img, early_stop=None, top_k=None, top_p=None, captions_num=48,
             temperature=None, bs=None, seed=None, use_cache=True,
             l_template='', r_template='', l_special_token='<LT_I2T>', r_special_token='<RT_I2T>',
     ):
@@ -820,8 +819,6 @@ class ruDolphApiTrainable(ruDolphApi):
         self.seed_everything(seed)
 
         early_stop = early_stop or self.r_text_seq_length
-
-        img = self.image_transform(pil_img)
 
         r_encoded = self.encode_text(r_template.lower().strip(), text_seq_length=self.r_text_seq_length)
         r_encoded[torch.where(r_encoded == self.spc_id)] = self.spc_tokens[r_special_token]
@@ -890,7 +887,7 @@ class ruDolphApiTrainable(ruDolphApi):
     def self_reranking_by_image(
             self,
             texts,
-            pil_img,
+            img,
             bs=8,
             seed=42,
             l_special_token='<LT_T2I>',
@@ -899,8 +896,6 @@ class ruDolphApiTrainable(ruDolphApi):
         torch.cuda.empty_cache()
         bs = bs or self.bs
         self.seed_everything(seed)
-
-        img = self.image_transform(pil_img)
 
         ppl_txt, ppl_img = [], []
         for chunk in more_itertools.chunked(texts, bs):
