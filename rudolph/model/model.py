@@ -204,8 +204,8 @@ class ruDolphModel(torch.nn.Module):
 
         loss = loss / loss_weights
         #outputs = (loss, loss_values)
-        outputs += loss
-        outputs += loss_values
+        outputs += (loss,)
+        outputs += (loss_values,)
         
         return outputs
 
