@@ -152,12 +152,11 @@ class ruDolphModel(torch.nn.Module):
         )
 
         logits = self.to_logits(transformer_output)
-        if use_cache is True:
+        if return_loss is False:
             outputs = (logits, present_cache)
             if return_hidden_states:
                 outputs += (hidden_states,)
-            if return_loss is False:
-                return outputs
+            return outputs
 
         logits = rearrange(logits, 'b n c -> b c n')
         l_text_logits = logits[
@@ -203,14 +202,9 @@ class ruDolphModel(torch.nn.Module):
                 loss_weights += rt_loss_weight
 
         loss = loss / loss_weights
-        if use_cache is False:
-            outputs = (loss, loss_values)
-            if return_hidden_states:
-                 outputs += (hidden_states,)
-        else:
-            outputs += (loss,)
-            outputs += (loss_values,)
-            
+        outputs = (loss, loss_values)
+        if return_hidden_states:
+            outputs += (hidden_states,)
         return outputs
 
     def to(self, device, *args, **kwargs):
